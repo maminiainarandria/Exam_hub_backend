@@ -21,6 +21,10 @@ export class StudentExamService {
       throw new AppError(404, 'Exam not found');
     }
 
+    if (await this.exams.hasStudentAttempt(examId, studentId)) {
+      throw new AppError(409, 'Exam already taken');
+    }
+
     const exam = await this.exams.findAvailableForStudent(
       examId,
       studentId
@@ -202,10 +206,7 @@ export class StudentExamService {
             is_correct: boolean;
           }> = [];
 
-          for (
-            const [questionId, question]
-            of examQuestions
-          ) {
+          for (const [questionId, question] of examQuestions) {
             totalPoints += question.points;
 
             const studentChoiceId =

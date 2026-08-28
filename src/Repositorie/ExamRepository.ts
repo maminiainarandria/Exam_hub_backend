@@ -215,6 +215,26 @@ export class ExamRepository {
 
     return rows[0] ?? null;
   }
+async hasStudentAttempt(
+  examId: number,
+  studentId: number
+) {
+  const { rows } = await pool.query(
+    `SELECT EXISTS(
+       SELECT 1
+       FROM attempts
+       WHERE exam_id = $1
+         AND student_id = $2
+     ) AS exists`,
+    [examId, studentId]
+  );
+
+  return rows[0].exists as boolean;
+}
+
+
+
+
 
   async exists(id: number) {
     const { rows } = await pool.query(
