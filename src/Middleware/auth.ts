@@ -12,34 +12,71 @@ declare global {
   }
 }
 
-export async function authenticate(req: Request, _res: Response, next: NextFunction): Promise<void> {
+export async function authenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): Promise<void> {
   const header = req.header('Authorization');
-  if (!header?.startsWith('Bearer ')) {
-    next(new AppError(401, 'Authentification requise.'));
+
+  if (!header) {
+    next(new AppError(401, 'No token provided'));
+    return;
+  }
+
+  if (
+    !header.startsWith('Bearer ') ||
+    header.slice(7).trim() === ''
+  ) {
+    next(new AppError(401, 'Invalid or expired token'));
     return;
   }
 
   let tokenUser: JwtUser;
+
   try {
     tokenUser = verifyToken(header.slice(7));
   } catch {
-    next(new AppError(401, 'Token invalide ou expiré.'));
+    next(new AppError(401, 'Invalid or expired token'));
     return;
   }
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, email, role, active FROM users WHERE id=$1`,
+      `SELECT id, role, active
+       FROM users
+       WHERE id = $1`,
       [tokenUser.userId]
     );
+
     const current = rows[0];
-    if (!current) throw new AppError(401, 'Compte introuvable.');
-    if (!current.active) throw new AppError(403, 'Compte désactivé. Contactez un administrateur.');
-    if (current.role !== tokenUser.role) throw new AppError(401, 'Session invalide.');
-   req.user = {
-  userId: Number(current.id),
-  role: current.role
-};
+
+    if (!current) {
+      throw new AppError(
+        401,
+        'Invalid or expired token'
+      );
+    }
+
+    if (!current.active) {
+      throw new AppError(
+        401,
+        'Account disabled'
+      );
+    }
+
+    if (current.role !== tokenUser.role) {
+      throw new AppError(
+        401,
+        'Invalid or expired token'
+      );
+    }
+
+    req.user = {
+      userId: Number(current.id),
+      role: current.role
+    };
+
     next();
   } catch (error) {
     next(error);
@@ -47,9 +84,31 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
 }
 
 export function authorize(...roles: Role[]) {
-  return (req: Request, _res: Response, next: NextFunction): void => {
-    if (!req.user) return next(new AppError(401, 'Authentification requise.'));
-    if (!roles.includes(req.user.role)) return next(new AppError(403, 'Accès interdit pour ce rôle.'));
+  return (
+    req: Request,
+    _res: Response,
+    next: NextFunction
+  ): void => {
+    if (!req.user) {
+      next(new AppError(401, 'No token provided'));
+      return;
+    }
+
+    if (!roles.includes(req.user.role)) {
+      if (roles.length === 1 && roles[0] === 'admin') {
+        next(new AppError(403, 'Admin access required'));
+        return;
+      }
+
+      if (roles.length === 1 && roles[0] === 'student') {
+        next(new AppError(403, 'Student access required'));
+        return;
+      }
+
+      next(new AppError(403, 'Access forbidden'));
+      return;
+    }
+
     next();
   };
 }
