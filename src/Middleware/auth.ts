@@ -30,13 +30,16 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
   try {
     const { rows } = await pool.query(
       `SELECT id, email, role, active FROM users WHERE id=$1`,
-      [tokenUser.id]
+      [tokenUser.userId]
     );
     const current = rows[0];
     if (!current) throw new AppError(401, 'Compte introuvable.');
     if (!current.active) throw new AppError(403, 'Compte désactivé. Contactez un administrateur.');
     if (current.role !== tokenUser.role) throw new AppError(401, 'Session invalide.');
-    req.user = { id: Number(current.id), email: current.email, role: current.role };
+   req.user = {
+  userId: Number(current.id),
+  role: current.role
+};
     next();
   } catch (error) {
     next(error);

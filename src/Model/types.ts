@@ -1,11 +1,9 @@
 export type Role = 'admin' | 'student';
 
 export interface JwtUser {
-  id: number;
+  userId: number;
   role: Role;
-  email: string;
 }
-
 export interface QuestionChoiceInput {
   label: string;
   isCorrect: boolean;

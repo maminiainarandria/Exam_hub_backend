@@ -7,9 +7,9 @@ function required(name: string): string {
 }
 
 export const env = {
-  port: Number(process.env.PORT ?? 4000),
+  port: Number(process.env.PORT ?? 3001),
   databaseUrl: required('DATABASE_URL'),
   jwtSecret: required('JWT_SECRET'),
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '8h',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '24h',
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173'
 };

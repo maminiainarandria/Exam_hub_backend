@@ -16,12 +16,18 @@ export class AuthService {
     if (!user) throw new AppError(401, 'Email ou mot de passe incorrect.');
     const valid = await verifyPassword(password, user.password_hash);
     if (!valid) throw new AppError(401, 'Email ou mot de passe incorrect.');
-    if (!user.active) throw new AppError(403, 'Compte désactivé. Contactez un administrateur.');
-
-    const token = signToken({ id: Number(user.id), role: user.role, email: user.email });
+   if (!user.active) throw new AppError(401, 'Account disabled');
+    const token = signToken({
+  userId: Number(user.id),
+  role: user.role
+});
     return {
       token,
-      user: { id: Number(user.id), name: user.name, email: user.email, role: user.role }
+     user: {
+  id: Number(user.id),
+  name: user.name,
+  role: user.role
+}
     };
   }
 }

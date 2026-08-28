@@ -6,7 +6,7 @@ import { AppError } from '../Utils/AppError.js';
 const service = new StudentExamService();
 function studentId(req: Request): number {
   if (!req.user) throw new AppError(401, 'Authentification requise.');
-  return req.user.id;
+  return req.user.userId;
 }
 
 export const myExamController = {
