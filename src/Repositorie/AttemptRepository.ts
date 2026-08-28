@@ -65,20 +65,25 @@ export class AttemptRepository {
     );
   }
 
-  async history(studentId: number) {
-    const { rows } = await pool.query(
-      `SELECT a.id AS attempt_id, a.exam_id, e.title, c.code AS course_code, c.name AS course_name,
-              a.score::float, a.max_score::float, a.submitted_at,
-              CASE WHEN a.max_score = 0 THEN 0 ELSE ROUND((a.score/a.max_score)*100,2)::float END AS percentage
-       FROM attempts a
-       JOIN exams e ON e.id=a.exam_id
-       JOIN courses c ON c.id=e.course_id
-       WHERE a.student_id=$1
-       ORDER BY a.submitted_at DESC`,
-      [studentId]
-    );
-    return rows;
-  }
+ async history(studentId: number) {
+  const { rows } = await pool.query(
+    `SELECT
+       a.exam_id,
+       e.title,
+       c.code AS course_code,
+       a.score::int AS score,
+       a.max_score::int AS total_points,
+       a.submitted_at
+     FROM attempts a
+     JOIN exams e ON e.id = a.exam_id
+     JOIN courses c ON c.id = e.course_id
+     WHERE a.student_id = $1
+     ORDER BY a.submitted_at DESC`,
+    [studentId]
+  );
+
+  return rows;
+}
 
   async detailedResult(studentId: number, examId: number) {
     const attemptResult = await pool.query(
