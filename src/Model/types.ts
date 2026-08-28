@@ -4,6 +4,7 @@ export interface JwtUser {
   userId: number;
   role: Role;
 }
+
 export interface QuestionChoiceInput {
   label: string;
   isCorrect: boolean;
@@ -12,6 +13,7 @@ export interface QuestionChoiceInput {
 export interface QuestionInput {
   statement: string;
   points?: number;
+  position?: number;
   choices: QuestionChoiceInput[];
 }
 

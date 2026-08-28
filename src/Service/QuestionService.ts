@@ -6,13 +6,13 @@ import { validateQuestionInput } from '../Utils/validation.js';
 export class QuestionService {
   constructor(private questions = new QuestionRepository(), private exams = new ExamRepository()) {}
 
-  async listAdmin(examId: number) {
-    if (!await this.exams.exists(examId)) throw new AppError(404, 'Examen introuvable.');
-    return {
-      locked: await this.exams.hasAttempts(examId),
-      questions: await this.questions.listAdmin(examId)
-    };
+ async listAdmin(examId: number) {
+  if (!await this.exams.exists(examId)) {
+    throw new AppError(404, 'Exam not found');
   }
+
+  return this.questions.listAdmin(examId);
+}
 
   async create(examId: number, body: unknown) {
     if (!await this.exams.exists(examId)) throw new AppError(404, 'Examen introuvable.');
